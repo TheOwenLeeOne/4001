@@ -8,7 +8,7 @@ program MESSAGEPROG {
 	version MESSAGEVERS {
 		int PRINTMESSAGE(string) = 1;
 		int remove(string) = 2;
-		char search(string) = 3;
+		string search(string) = 3;
 		int count(string) = 4;
 		/*int find(string) = 5;
 		int delete(string) = 6;
