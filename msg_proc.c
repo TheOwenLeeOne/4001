@@ -107,7 +107,7 @@ int *printmessage_1_svc(char **msg, struct svc_req *rqstp)
 
 
 
-char *search_1_svc(char **msg, struct svc_req *rqstp){
+char **search_1_svc(char **msg, struct svc_req *rqstp){
 	
 	const char s[2] = ".";
 
@@ -116,21 +116,22 @@ char *search_1_svc(char **msg, struct svc_req *rqstp){
 	char *text = openFile();
 
 
-	char *sentence;
+	char **sentence;
 
-	sentence = strtok(text, s);
+	*sentence = strtok(text, s);
 	
 
 	while(sentence != NULL){
 		printf("%s\n", sentence);
 		
-		if(findWordInSentence(sentence, word) == 1){
+		if(findWordInSentence(*sentence, word) == 1){
 			return sentence;
 		}
-		sentence = strtok(NULL, s);
+		*sentence = strtok(NULL, s);
 	}
 
 	return (NULL);
+
 }
 
 
