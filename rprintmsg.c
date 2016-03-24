@@ -128,8 +128,9 @@ int main(int argc, char *argv[])
 
 else if(strcmp(command, "-s") == 0){
 	//Call search
-	char *returned;
-	returned = search_1(&message, cl);
+	char **returned;
+	char **newMessage = &message;
+	returned = search_1(newMessage, cl);
 	 if (returned == NULL) {
 		//error occured
 		 clnt_perror(cl, server);
@@ -137,13 +138,11 @@ else if(strcmp(command, "-s") == 0){
 		}
 
 	//Search was successful
-	 printf("Message found the sentence:  \n");
-	 while(strcmp(returned, ".") != 0){
-	 	printf("%s", returned);
-	 }
-
+	 printf("Message found the sentence:  %s\n", *returned);
 	 return 0;
 	}
+
+}
 	
 	
 	else if(strcmp(command, "-r") == 0){
