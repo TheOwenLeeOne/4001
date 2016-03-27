@@ -128,23 +128,19 @@ int main(int argc, char *argv[])
 
 else if(strcmp(command, "-s") == 0){
 	//Call search
-	char *returned;
-	returned = search_1(&message, cl);
+	char **returned;
+	char **newMessage = &message;
+	returned = search_1(newMessage, cl);
 	 if (returned == NULL) {
-		//error occured
-		 clnt_perror(cl, server);
-		 exit(1);
-		}
+		//Couldn't find it
+		printf("Couldn't find it\n");
+		return 0;
+	}
 
 	//Search was successful
-	 printf("Message found the sentence:  \n");
-	 while(strcmp(returned, ".") != 0){
-	 	printf("%s", returned);
-	 }
-
-	 return 0;
+	 printf("Found sentence: %s\n", *returned);
+	 return 1;
 	}
-	
 	
 	else if(strcmp(command, "-r") == 0){
 	//Call remove
@@ -164,5 +160,33 @@ else if(strcmp(command, "-s") == 0){
 
 	 return 0;
 	}
+	
+	
+	
+	else if (strcmp(command, "-f") == 0){
+
+	char **returned;
+	char* end;
+	int index = strtol(message, &end, 10);
+
+	if(!*end){
+	returned = find_1(&index, cl);
+	if(returned == NULL){
+		printf("Unable to find sentence with index %d\n", index);
+		return 0;
+	}
+
+	printf("Got sentence: %s\n", *returned);
+
+	return 1;
+	}
+	else{
+		printf("unable to convert input to integer: %s\n", end);
+		return 0;
+	}
+	
+}
+	
+	
 
 }
