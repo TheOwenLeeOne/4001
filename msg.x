@@ -10,8 +10,8 @@ program MESSAGEPROG {
 		int remove(string) = 2;
 		char search(string) = 3;
 		int count(string) = 4;
-		/*int find(string) = 5;
-		int delete(string) = 6;
+		int find(string) = 5;
+		/*int delete(string) = 6;
 		*/
 	} = 1;
 } = 0x20083001;
