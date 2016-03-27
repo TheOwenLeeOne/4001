@@ -36,7 +36,7 @@ char *openFile(){
 		fclose (f);	
 	}
 	if(buffer){
-		return buffer;
+		return strdup(buffer);
 	}
 	else{
 		printf("Error reading file");
@@ -54,9 +54,7 @@ int findWordInSentence(char text[], char query[]){
 }
 
 int findSentenceLocation(char *query){
-	const char s[2] = ".";
-
-	
+	const char s[2] = ".\n";
 	
 	char *text = openFile();
 	char *sentence;
@@ -107,30 +105,25 @@ int *printmessage_1_svc(char **msg, struct svc_req *rqstp)
 
 
 
-char *search_1_svc(char **msg, struct svc_req *rqstp){
+char **search_1_svc(char **msg, struct svc_req *rqstp){
 	
-	const char s[2] = ".";
+	const char s[2] = ".\n";
 
 	char *word = *msg;	
 	
 	char *text = openFile();
 
+	char **sentence;
 
-	char *sentence;
+	*sentence = strtok(text, s);
 
-	sentence = strtok(text, s);
-	
-
-	while(sentence != NULL){
-		printf("%s\n", sentence);
-		
-		if(findWordInSentence(sentence, word) == 1){
-			return sentence;
+	while(*sentence != NULL){
+		if(findWordInSentence(*sentence, word) == 1){
+			break;
 		}
-		sentence = strtok(NULL, s);
+		*sentence = strtok(NULL, s);
 	}
-
-	return (NULL);
+	return sentence;
 }
 
 
@@ -161,6 +154,45 @@ int *count_1_svc(char **msg, struct svc_req *rqstp){
 	result = occur;
 	return (&result);
 }
+
+
+char **find_1_svc(int *index, struct svc_req *rqstp){
+
+	const char *s = ".\n";
+
+	int g = *index;
+
+	char *text = openFile();
+
+	char **sentence;
+
+	*sentence = strtok(text, s);
+
+	printf("getting first token\n");
+
+	int i = 0;
+
+	while(*sentence != NULL){
+
+		printf("\n.. \n%s\n", text);
+		if(i == g){
+			break;
+		}
+
+		i++;
+		*sentence = strtok(NULL, s);
+	}
+	free(text);
+
+	return sentence;
+}
+
+
+
+
+
+
+
 
 int *remove_1_svc(char **msg, struct svc_req *rqstp){
 	
