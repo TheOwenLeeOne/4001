@@ -19,6 +19,9 @@ int main(int argc, char *argv[])
 	char *command;
 	char *message;
 
+
+	char **the_response;
+
 	if (argc < 3) {
 		fprintf(stderr, "usage: %s host message\n", argv[0]);
 		exit(1);
@@ -96,10 +99,6 @@ int main(int argc, char *argv[])
 	 return 0;
 	}
 
-
-	
-
-
     else if(strcmp(command, "-c") == 0){
     	//Call count
     	 result = count_1(&message, cl);
@@ -119,7 +118,7 @@ int main(int argc, char *argv[])
     		}
 
     	//Search was successful
-    	 printf("The word occured %d!\n",&result);
+    	 printf("The word occured %d!\n", *result);
 
     	 return 0;
     	}
@@ -141,44 +140,24 @@ else if(strcmp(command, "-s") == 0){
 	 printf("Found sentence: %s\n", *returned);
 	 return 1;
 	}
-	
-	else if(strcmp(command, "-r") == 0){
-	//Call remove
-	char *returned;
-	returned = remove_1(&message, cl);
-	 if (returned == NULL) {
-		//error occured
-		 clnt_perror(cl, server);
-		 exit(1);
-		}
 
-	//Search was successful
-	 printf("Message found the sentence:  \n");
-	 while(strcmp(returned, ".") != 0){
-	 	printf("%s", returned);
-	 }
 
-	 return 0;
-	}
-	
-	
-	
-	else if (strcmp(command, "-f") == 0){
+else if (strcmp(command, "-f") == 0){
 
-	char **returned;
+	char **response;
 	char* end;
 	int index = strtol(message, &end, 10);
 
 	if(!*end){
-	returned = find_1(&index, cl);
-	if(returned == NULL){
+	response = find_1(&index, cl);
+	if(response == NULL){
 		printf("Unable to find sentence with index %d\n", index);
 		return 0;
 	}
 
-	printf("Got sentence: %s\n", *returned);
-
-	return 1;
+	printf("Got sentence: %s\n", *response);
+	exit(1);
+	return 0;
 	}
 	else{
 		printf("unable to convert input to integer: %s\n", end);
@@ -186,7 +165,50 @@ else if(strcmp(command, "-s") == 0){
 	}
 	
 }
-	
-	
+
+
+
+
+	else if(strcmp(command, "-r") == 0){
+	//Call remove
+	char **response;
+	response = remove_string_1(&message, cl);
+
+	printf("%s\n", *response);
+	return 0;
+
+	// //Search was successful
+	//  printf("Message found the sentence:  \n");
+	//  while(strcmp(*response, ".") != 0){
+	//  	printf("%s", *response);
+	//  }
+
+	//  return 0;
+	}
+
+
+
+
+	else if(strcmp(command, "-d") == 0){
+	//Call remove
+	char **response;
+	printf("calling thing\n");
+	response = delete_1(&message, cl);
+	printf("called thing\n");
+
+	printf("printing thing\n");
+	printf("%s\n", *response);
+	printf("printed thing\n");
+	free(*response);
+	return 0;
+	}
+
+
+
 
 }
+
+
+
+
+
