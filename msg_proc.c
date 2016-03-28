@@ -12,12 +12,12 @@
 
 //error messages
 
-char *open_file_error = "Unable to open file output.txt";
-char *wrong_input = "Incorrect input";
-
-char **the_response;
+ char *open_file_error = "Unable to open file output.txt";
+ char *wrong_input = "Incorrect input";
 
 
+
+//Opens the file output.txt and returns its contents into a single string. Returns null if error occurrs
  char *openFile(){
 
  	char *buffer;
@@ -46,6 +46,7 @@ char **the_response;
 	}
 }
 
+//returns true if query is in text
 int findWordInSentence(char text[], char query[]){
 	if(strstr(text, query)!=NULL){
 		return 1;
@@ -56,27 +57,22 @@ int findWordInSentence(char text[], char query[]){
 }
 
 
+//returns the index of the sentence containing query
 int findSentenceLocation(char *query){
 	const char s[2] = ".\n";
-	
-	char *text = openFile();
-
+	char *text = openFile();		//opens text file
 	char *sentence;
-
 	sentence = strtok(text, s);
-	
 	int i = 0;
-	while(sentence != NULL){
-		//printf("%s\n", sentence);
-		
+	while(sentence != NULL){		//Traverse document
 		if(findWordInSentence(sentence, query) == 1){
 			return i;
-			break;
 		}
 		i++;
 		sentence = strtok(NULL, s);
 	}
 
+	//return -1 if the entire text is traversed and no match is found.
 	return (-1);
 }
 
@@ -87,19 +83,15 @@ int findSentenceLocation(char *query){
 		PROCEDURES
 *******************************************/
 
-
-/*
- * Remote verson of "printmessage"
- */
-
- int *printmessage_1_svc(char **msg, struct svc_req *rqstp)
+//Appends to the text document. Returns 1 if it is successful, and 0 if unsucessful.
+ int *append_1_svc(char **msg, struct svc_req *rqstp)
  {
-	static int result; /* must be static! */
+	static int result;
  	FILE *f;
 
-	f = fopen("output.txt", "a");// opens output file 
+	f = fopen("output.txt", "a");// opens output file and appends 
 	if (f == NULL) 
-	{
+	{		//return 0 if 
 		result = 0;
 		return (&result);
 	}
@@ -113,158 +105,135 @@ int findSentenceLocation(char *query){
 
 
 
-
-char **search_1_svc(char **msg, struct svc_req *rqstp){
+//splits the whole text file into sentences, and checks each sentence for the query
+//Returns the sentence in a string, or NULL pointer if it is not found.
+char **search_1_svc(char **query, struct svc_req *rqstp){
 	
-	const char s[2] = ".\n";
-
-	char *word = *msg;	
-	
+	const char delimiter[2] = ".\n";	//Must be [2]. Causes segfault if in pointer notation. Its weird.	
 	char *text = openFile();
+	if(text == NULL){ return  NULL;	}	//openFile returns null pointer if error occurs 
 
 	char **sentence;
-
-	*sentence = strtok(text, s);
-
+	*sentence = strtok(text, delimiter);
 	while(*sentence != NULL){
-		if(findWordInSentence(*sentence, word) == 1){
+		if(findWordInSentence(*sentence, *query) == 1){	//If the query is in the sentence, break out of the loop
 			break;
 		}
-		*sentence = strtok(NULL, s);
+		*sentence = strtok(NULL, delimiter);
 	}
-	return sentence;
+	return sentence;	//if sentence is not found, will return a null pointer
 }
 
-
+//Finds the sentence at the given index.
+//bugs in this function are caused by the strtok command. The first call of find() on the server works perfectly normal.
+//Any call made after without resetting the server will return a null value or cause a segfault. 
 char **find_1_svc(int *index, struct svc_req *rqstp){
+	const char *delimiter = ".\n";
+	int g = *index;			
 
-	const char *s = ".\n";
-
-	int g = *index;
-
-	char *text = openFile();
+	char *text = openFile();	//open the text file
+	if(text == NULL){ 
+		return  null;
+	}
 
 	char *sentence;
-
-	sentence = strdup(strtok(text, s));
-
+	sentence = strdup(strtok(text, delimiter));			
 	int i = 0;
-
-	while(sentence != NULL){
-
-		if(i == g){
+	while(sentence != NULL){		//loops through each sentence, counting how many are there.
+		if(i == g){					//When the count reaches the index, break and return the sentence.
 			break;
 		}
-
 		i++;
-		sentence = strdup(strtok(NULL, s));
+		sentence = strdup(strtok(NULL, delimiter));
 	}
-	free(text);
-	char **f;
-	*f = sentence;
-	printf("%s\n", sentence);
-
-	printf("%s\n", *f);
-	return f;
+	char **f;	
+	*f = sentence;			//issues also arose when returning a string. Assigning the string pointer directly to a 
+	return f;				//string caused segfaults.
 }
 
-int *count_1_svc(char **msg, struct svc_req *rqstp){
+
+//substrings the text using the query string, counting how many times the query occurs
+int *count_1_svc(char **query, struct svc_req *rqstp){
 	char *substring;
 	int occur = 0;
-	printf("count was called \n");
 	static int result; 
-	FILE *f;
 	
-	char *text = openFile();
-	//printf(*msg,"\n");
-	//printf(text);
-	substring = strstr(text, *msg);
-	printf(substring);
+	char *text = openFile(); //open the text file
+	if(text == NULL){ 
+		result = -1;
+		return  &result;
+	}
+
+	substring = strstr(text, *query);	//get to the first occurance of the query
 	while (substring!=NULL){
-		printf("here2 \n",substring);
 		occur++;
 		substring++;
-		printf("here1 %d \n",occur);
-		substring = strstr(substring, *msg);
-	}
-	
-	//printf("%s ", occur);
-	//printf("printed text \n");
-	
+		substring = strstr(substring, *query);
+	}	
 	result = occur;
 	return (&result);
 }
 
 
-
-char **remove_string_1_svc(char **msg, struct svc_req *rqstp){
+//Removes the first occurrance of a sentence containing the query
+//Creates a new text file, copies every sentence except the target to the new file, deletes the old, and renames the latest file
+char **remove_string_1_svc(char **query, struct svc_req *rqstp){
 	
 	char **response;
-	char *firstResponse;
 
 	const char *delimiter_characters = ".";
 
-	char *text;//[ BUFFER_SIZE];
+	char *text;
 	char *last_token;
 
 	int counter = 0;
 	int result;
 
-	int line = findSentenceLocation(*msg);
+	int line = findSentenceLocation(*query);	//Get the index of the sentence to remove
 
-	if(line==-1)
-	{
-		printf("couldn't\n");
-		*the_response = strdup("couldn't find word");
-
-		return the_response;
+	if(line==-1){		//return error message if sentence isn't there
+		char *j = "Couldn't find a sentence to remove";
+		response = malloc(sizeof(j));
+		*response = j;
+		return response;
 	}
 
-	FILE *output_file = fopen( "new_output.txt","w+");
-   
-    text = openFile();
-    
+	FILE *output_file = fopen( "new_output.txt","w+");	//Open a new file
+	
+	text = openFile();	//open the text file
+	if(text == NULL){ 
+		return  null;
+	}
 
-    if( text == NULL ){
-    	return &open_file_error;
-
-    }else{
-
-    	last_token = strtok( text, delimiter_characters );
-
-    	counter=0;
-
-
-    	while(last_token != NULL){
-
-    		if (counter!=line){
-    			fputs(last_token,output_file);
-    			counter++;
-    			last_token = strtok( NULL, delimiter_characters );
-    			if( (last_token != NULL)){ fputs(".",output_file); }
-    		}
-    		else{
-    			counter++;
-    			last_token = strtok( NULL, delimiter_characters );
-    		}
-    		
-    	}
+	last_token = strtok( text, delimiter_characters );
+	counter=0;
+	while(last_token != NULL){							//traverse each sentence until you reach the desired index, copying every sentence
+		if (counter!=line){								//to the new file.
+			fputs(last_token,output_file);				
+			counter++;
+			last_token = strtok( NULL, delimiter_characters );
+			if( (last_token != NULL)){ fputs(".",output_file); }
+		}
+		else{							//skips the target sentence
+			counter++;
+			last_token = strtok( NULL, delimiter_characters );
+		}
+		
+	}
 
 
-    	remove("output.txt");
-    
-    	rename("new_output.txt", "output.txt");
+	remove("output.txt");					//delete file
+	rename("new_output.txt", "output.txt");	//rename new file
+	fclose(output_file);
 
-     
-    	fclose(output_file);
-
-    }
-    *response = "removed sentence";
-    return response;	
+	char *j = "removed sentence";
+	response = malloc(sizeof(j));			//Again trouble arose with returning messages
+	*response = j;
+	return response;
 }
 
 
-
+//Deletes every occurrance of a word
 
 
 char **delete_1_svc(char **query, struct svc_req *rqstp){
@@ -274,17 +243,23 @@ char **delete_1_svc(char **query, struct svc_req *rqstp){
 	const char *delimiter = " \n";
 	char **response;
 	char *currentToken;
-	char *text = openFile();
-	if(text == NULL){ return &open_file_error; }
+
+	char *text = openFile();	//open the text file
+	if(text == NULL){ 
+		return  null;
+	}
 
 	FILE *output_file = fopen( "new_output.txt","w+");
 	
 	currentToken = strtok(text, delimiter);
 	while(currentToken != NULL){
 
-		if(strcmp(currentToken, *query)!=0){
+		int l = strlen(currentToken) -1;
+		if(strncmp(currentToken, *query, l)!=0){
+
 			fputs(currentToken, output_file);
-			currentToken = strtok(NULL, delimiter);
+			if(currentToken)
+				currentToken = strtok(NULL, delimiter);
 			if(currentToken != NULL){ fputs(" ", output_file); }
 		}
 		else{
@@ -296,9 +271,10 @@ char **delete_1_svc(char **query, struct svc_req *rqstp){
 	rename("new_output.txt", "output.txt");
 
 	fclose(output_file);
-	// char * gg = ("Removed %d '%s'", counter, query);
 
-	*response = "deleted thing";
-	printf("%s\n", *response);
+	char *j = "deleted the word";
+	response = malloc(sizeof(j));
+
+	*response = j;
 	return response;
 }
