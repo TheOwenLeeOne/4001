@@ -6,12 +6,14 @@
 
 program MESSAGEPROG {
 	version MESSAGEVERS {
+		
+
 		int PRINTMESSAGE(string) = 1;
-		int remove(string) = 2;
-		char search(string) = 3;
+		string remove_string(string) = 2;
+		string search(string) = 3;
 		int count(string) = 4;
-		int find(string) = 5;
-		/*int delete(string) = 6;
-		*/
+		string find(int) = 5;
+		string delete(string) = 6;
+
 	} = 1;
 } = 0x20083001;
